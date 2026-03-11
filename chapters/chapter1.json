@@ -1,0 +1,15 @@
+{
+    "chapter_name": "CH_01",
+    "tile_size": 16,
+    "spawn_pos": [
+        1296,
+        2032
+    ],
+    "chunk_size": {
+        "width": 1280,
+        "height": 720
+    },
+    "layout": "chapters/chapter1.png",
+    "lightmap": "chapters/chapter1_lm.png",
+    "chunks": {}
+}
