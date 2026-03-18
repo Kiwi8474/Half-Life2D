@@ -566,9 +566,8 @@ def mainloop(screen, real_window):
         185: tilesheet.get_image(112, 0, tile_size, tile_size),  # Dunkel
         175: tilesheet.get_image(0, 16, tile_size, tile_size),  # Säure
         165: tilesheet.get_image(16, 16, tile_size, tile_size),  # Stachel
+        155: tilesheet.get_image(32, 16, tile_size, tile_size),  # Boden
     }
-
-    fog_surface = pygame.Surface((1280, 720))
 
     show_loading(screen, real_window)
 

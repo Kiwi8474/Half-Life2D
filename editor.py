@@ -1,8 +1,8 @@
 import os
-import json
-import pygame
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+import json
+import pygame
 import tkinter as tk
 from tkinter import filedialog
 from camera import Camera
@@ -12,13 +12,12 @@ from registry import entity_types, prop_types
 COLLECTABLES = ["Crowbar", "Glock"]
 PROPS = ["HealStation", "ShieldStation"]
 ENEMIES = ["Headcrab"]
-LAYERS = ["deco", "collision", "foreground", "lightmap"]
+LAYERS = ["deco", "collision", "foreground"]
 
 CHUNK_W, CHUNK_H = 1280, 720
 TILE_SIZE = 16
 
 master_layout_img = None
-master_lightmap_img = None
 chunk_cache = {}
 
 
@@ -26,6 +25,7 @@ def init():
     pygame.init()
     screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE)
     pygame.display.set_caption("Half-Life: 2D Editor")
+    pygame.display.set_icon(pygame.image.load("img/game.ico"))
     return screen, pygame.Surface((1280, 720))
 
 
@@ -64,24 +64,22 @@ def get_data_from_master(master_img, chunk_x, chunk_y):
             rect = pygame.Rect(real_x, real_y, TILE_SIZE, TILE_SIZE)
 
             if pixel.r > 0:
-                generated["collision"].append({"rect": rect, "id": 256 - pixel.r})
+                generated["collision"].append({"rect": rect, "id": pixel.r})
             if pixel.g > 0:
-                generated["deco"].append({"rect": rect, "id": 256 - pixel.g})
+                generated["deco"].append({"rect": rect, "id": pixel.g})
             if pixel.b > 0:
-                generated["foreground"].append({"rect": rect, "id": 256 - pixel.b})
+                generated["foreground"].append({"rect": rect, "id": pixel.b})
     return generated
 
 
 def get_active_chunks(cam_x, cam_y, chapter_data, active_enemies, active_props, assets):
-    global master_layout_img, master_lightmap_img, chunk_cache
+    global master_layout_img, chunk_cache
 
     if master_layout_img is None:
         master_layout_img = load_master(chapter_data.get("layout"))
-    if master_lightmap_img is None:
-        master_lightmap_img = load_master(chapter_data.get("lightmap"))
 
     cx, cy = int(cam_x // CHUNK_W), int(cam_y // CHUNK_H)
-    res = {"deco": [], "collision": [], "foreground": [], "lightmaps": []}
+    res = {"deco": [], "collision": [], "foreground": []}
 
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
@@ -92,26 +90,12 @@ def get_active_chunks(cam_x, cam_y, chapter_data, active_enemies, active_props, 
                 if master_layout_img:
                     gen = get_data_from_master(master_layout_img, cur_x, cur_y)
                     if gen:
-                        lm_surf = None
-                        if master_lightmap_img:
-                            try:
-                                lm_rect = pygame.Rect(
-                                    cur_x * CHUNK_W, cur_y * CHUNK_H, CHUNK_W, CHUNK_H
-                                )
-                                lm_surf = master_lightmap_img.subsurface(lm_rect).copy()
-                            except ValueError:
-                                pass
-                        gen["lightmap"] = lm_surf
                         chunk_cache[key] = gen
 
             cached = chunk_cache.get(key)
             if cached:
                 for l in ["deco", "collision", "foreground"]:
                     res[l].extend(cached[l])
-                if cached["lightmap"]:
-                    res["lightmaps"].append(
-                        (cached["lightmap"], (cur_x * CHUNK_W, cur_y * CHUNK_H))
-                    )
 
             c_info = chapter_data["chunks"].get(key)
             if c_info:
@@ -168,6 +152,7 @@ def mainloop(screen, window):
             185: (112, 0),
             175: (0, 16),
             165: (16, 16),
+            155: (32, 16),
         }.items()
     }
 
@@ -210,8 +195,8 @@ def mainloop(screen, window):
                 ):
                     json.dump(data, open(path, "w"), indent=4)
                 if event.key == pygame.K_r:
-                    global master_layout_img, master_lightmap_img
-                    master_layout_img = master_lightmap_img = None
+                    global master_layout_img
+                    master_layout_img = None
                     chunk_cache.clear()
 
             if event.type == pygame.MOUSEWHEEL:
@@ -266,13 +251,6 @@ def mainloop(screen, window):
             e.draw(screen, camera)
         for t in objs["foreground"]:
             screen.blit(texs.get(t["id"], texs[0]), camera.apply(t["rect"]))
-
-        for lm_surf, pos in objs["lightmaps"]:
-            screen.blit(
-                lm_surf,
-                camera.apply(pygame.Rect(*pos, CHUNK_W, CHUNK_H)),
-                special_flags=pygame.BLEND_MULT,
-            )
 
         pygame.draw.rect(
             screen, "#FFD900", camera.apply(pygame.Rect(gx, gy, 16, 16)), 2

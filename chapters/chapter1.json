@@ -3,7 +3,7 @@
     "tile_size": 16,
     "spawn_pos": [
         1296,
-        2032
+        2016
     ],
     "chunk_size": {
         "width": 1280,
@@ -11,5 +11,39 @@
     },
     "layout": "chapters/chapter1.png",
     "lightmap": "chapters/chapter1_lm.png",
-    "chunks": {}
+    "chunks": {
+        "1,2": {
+            "enemies": [],
+            "props": []
+        },
+        "1,1": {
+            "enemies": [],
+            "props": []
+        },
+        "3,1": {
+            "enemies": [],
+            "props": []
+        },
+        "1,3": {
+            "enemies": [],
+            "props": []
+        },
+        "1,0": {
+            "enemies": [],
+            "props": []
+        },
+        "2,3": {
+            "enemies": [],
+            "props": [
+                {
+                    "type": "Collectable",
+                    "name": "Crowbar",
+                    "x": 528,
+                    "y": 592,
+                    "width": 32,
+                    "height": 32
+                }
+            ]
+        }
+    }
 }
